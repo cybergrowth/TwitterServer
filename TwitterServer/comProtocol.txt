@@ -1,0 +1,98 @@
+﻿connecting:
+	client->server
+	0{username,password}->login
+	1{username,password,email}->register
+	2{username,email,new password} -> reset password
+login:
+	0->login correct -> auth
+	1->wrong username or password
+register:
+	0->success -> auth
+	1->username taken
+	2->invalid register details-> 0 is illeagal chars and 1 is invalid email address 2 is username too short 3 is password doesn't meat requirements
+reset passoword:
+	0->success -> auth
+	1message->issue
+
+auth
+	client->server
+	code:captcha-> code and captcha sent to check
+	server->client
+	0->correct code,succesfull
+	1->wrong code,please try again
+	2->failed auth
+	3->only login case-> password must be changed
+must change password:
+	client->server
+	password
+	server->client
+	0->logged in
+	1->password invalid
+-----------------------
+post login
+note:reply convention for id: when sending repId you send -repId-1
+
+search twits:
+	client->server
+	0{followed:(1/0),maxId,tags="t1,t2,t3..."}
+	followed 0->search everyone with the tags
+	followed 1->search only followed with tags 
+	minId is used to get more stuff, set it to -1 on initial
+	server->client
+	0{t1|t2|t3|t4}
+	the likes part is sent as (1/0) for hasLiked and then n for number likes
+create twit:
+	client->server
+	1{tags:"",content:"",image:""}
+like twit:
+	client->server
+	like:20id
+	unlike:21id
+delete twit: 
+	note: the server checks if the user can realy delete the twitt
+	client->server
+	3id
+follow user:
+	client->server
+	follow: 40username
+	unfollow: 41username 
+get user page:
+	client->server
+	5username
+	server->client
+	1{isfollowed,followers,twits}
+	each twit-> {id,username,content,time,likes,tags,replies(number),image}
+profilePicture:
+	note: pix images
+	client->server
+	sendProfile: 60FileType -> write all image bytes 
+	getProfile: 61username
+	server->client
+	2Ftype:target(if not default then username)->send write all image bytes
+GetTwit with replies:
+	client->server
+	7twitId
+	server->client
+	3{twit,replies=[r1,,,,]}
+	each reply-> {id,username,isonline,content,time,likes,hasLiked,replies}
+Reply to twit or reply:
+	client->server
+	8{id,content,image}
+	server->client
+	4NEW_ID:image
+requestTwitImage:
+	client->server
+	9(1/2)id
+	1 is image,2 is video
+	server->client
+	5(1/2)id
+	1 is image,2 is video
+error message:
+	server->client
+	6message
+search users:
+	client->server
+	a(0/1)searchWord->followed
+	server->client
+	7{users=[,,,,,,,,,]}
+
